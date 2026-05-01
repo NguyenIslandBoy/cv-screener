@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CV Screener</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- ── Header ───────────────────────────────────── -->
+    <header class="header">
+      <span class="logo">CV<span class="logo-dot">.</span>Screen</span>
+      <span class="header-badge">v0.1 · local</span>
+    </header>
+
+    <!-- ── Main ─────────────────────────────────────── -->
+    <main class="main">
+
+      <!-- Left panel: inputs -->
+      <div class="panel-left">
+
+        <!-- Tabs -->
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="cv">
+            <span class="tab-num">1</span> CV
+          </button>
+          <button class="tab" data-tab="jd">
+            <span class="tab-num">2</span> Job Description
+          </button>
+          <button class="tab" data-tab="github">
+            <span class="tab-num">3</span> GitHub
+          </button>
+          <button class="tab" data-tab="settings">
+            <span class="tab-num">4</span> Settings
+          </button>
+        </div>
+
+        <!-- Tab panels -->
+        <div class="tab-panels">
+
+          <!-- Tab 1: CV -->
+          <div class="tab-panel active" id="panel-cv">
+            <div class="field">
+              <label for="cv-file-input">Upload file</label>
+              <div class="upload-zone" id="upload-zone">
+                <span class="upload-icon">↑</span>
+                <span>Drop a file or click to browse</span>
+                <span class="upload-hint">.txt · .md · .docx · .pdf</span>
+                <input type="file" id="cv-file-input" accept=".txt,.md,.docx,.pdf" />
+                </div>
+                <span class="file-name" id="file-name-display"></span>
+                <button id="preview-toggle" style="display:none" class="btn-preview">Preview extracted text ▾</button>
+                <div id="preview-box" class="preview-box" style="display:none"></div>
+            </div>
+
+            <div class="divider">or paste directly</div>
+
+            <div class="field field-grow">
+              <label for="cv-text">CV text</label>
+              <textarea
+                id="cv-text"
+                placeholder="Paste your CV here..."
+              ></textarea>
+            </div>
+
+            <!-- <div class="notice notice-warn">
+              ⚠ Your CV is sent to the Groq API for evaluation.
+              Do not use this tool with third-party CVs without consent.
+            </div> -->
+          </div>
+
+          <!-- Tab 2: Job Description -->
+          <div class="tab-panel" id="panel-jd">
+            <div class="field field-grow">
+              <label for="jd-text">Job description</label>
+              <textarea
+                id="jd-text"
+                placeholder="Paste the full job description here — include requirements, responsibilities, and listed skills..."
+              ></textarea>
+            </div>
+            <p class="helper">
+              Paste the complete posting. The more detail, the more accurate the evaluation.
+            </p>
+          </div>
+
+          <!-- Tab 3: GitHub / Portfolio -->
+          <div class="tab-panel" id="panel-github">
+            <div class="field">
+              <label for="github-username">
+                GitHub username
+                <span class="label-optional">(optional)</span>
+              </label>
+              <input
+                type="text"
+                id="github-username"
+                placeholder="e.g. torvalds"
+              />
+              <p class="helper">Auto-fetch coming in Phase 2. Describe manually below for now.</p>
+            </div>
+
+            <div class="divider">or describe manually</div>
+
+            <div class="field field-grow">
+              <label for="portfolio-text">
+                Portfolio / project summary
+                <span class="label-optional">(optional)</span>
+              </label>
+              <textarea
+                id="portfolio-text"
+                placeholder="Briefly describe your most relevant projects — tech stack, outcomes, scale. 2–4 sentences is enough."
+              ></textarea>
+            </div>
+
+            <p class="helper">
+              Skip this tab for non-STEM roles. A manual summary is often more accurate than raw repo data.
+            </p>
+          </div>
+
+          <!-- Tab 4: Settings -->
+        <div class="tab-panel" id="panel-settings">
+        <div class="field">
+            <label for="role-type">Role type</label>
+            <select id="role-type">
+            <option value="stem">STEM / Technical — includes portfolio scoring + plan</option>
+            <option value="non-stem">Non-STEM — skips portfolio, no plan</option>
+            </select>
+        </div>
+
+        <div class="notice notice-info">
+            <strong>Models</strong><br/>
+            Model → <code>openai/gpt-oss-120b</code><br/><br/>
+            <!-- Change models or API key in <code>js/config.js</code>. Never commit that file. -->
+        </div>
+        </div>
+
+        </div><!-- /tab-panels -->
+
+        <!-- Action bar -->
+        <div class="action-bar">
+          <div class="pills" id="input-pills">
+            <span class="pill" id="pill-cv">CV ✗</span>
+            <span class="pill" id="pill-jd">JD ✗</span>
+            <span class="pill pill-hidden" id="pill-github">GitHub ✓</span>
+          </div>
+          <button class="btn-primary" id="run-btn" disabled>
+            Run Evaluation →
+          </button>
+        </div>
+
+      </div><!-- /panel-left -->
+
+        <!-- Divider -->
+      <div id="divider"></div>
+
+      <!-- Right panel: results -->
+      <div class="panel-right">
+
+        <div class="results-header">
+          <span class="results-title">Results</span>
+          <span class="results-meta" id="results-meta"></span>
+        </div>
+
+        <div class="results-body" id="results-body">
+
+          <!-- Empty state -->
+          <div class="state-empty" id="state-empty">
+            <div class="empty-icon">◎</div>
+            <h2>No evaluation yet</h2>
+            <p>Fill in the inputs on the left and hit Run Evaluation.</p>
+            <ol class="empty-steps">
+              <li>Paste or upload your CV on the CV tab</li>
+              <li>Paste the job description on the JD tab</li>
+              <li>Hit Run Evaluation</li>
+            </ol>
+          </div>
+
+          <!-- Loading state -->
+          <div class="state-loading" id="state-loading">
+            <div class="spinner"></div>
+            <span class="loading-label" id="loading-label">Evaluating...</span>
+            <span class="loading-model" id="loading-model"></span>
+          </div>
+
+          <!-- Error state -->
+          <div class="state-error" id="state-error">
+            <div class="error-box">
+              <strong>Error</strong>
+              <span id="error-message"></span>
+            </div>
+          </div>
+
+          <!-- Results state — populated by render.js -->
+          <div class="state-results" id="state-results"></div>
+
+        </div><!-- /results-body -->
+
+      </div><!-- /panel-right -->
+
+    </main>
+
+  </div><!-- /app -->
+
+  <!-- JS modules — loaded in dependency order -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/reader.js"></script>
+  <script src="js/prompt.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/download.js"></script>
+  <script src="js/ui.js"></script>
+
+</body>
+</html>

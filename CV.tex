@@ -1,0 +1,443 @@
+\documentclass[10pt, letterpaper]{article}
+
+% --- PREAMBLE (leave this unchanged, it's the RenderCV style you provided) ---
+\usepackage[
+    ignoreheadfoot, 
+    top=2 cm, 
+    bottom=2 cm, 
+    left=2 cm, 
+    right=2 cm, 
+    footskip=1.0 cm, 
+]{geometry}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{primaryColor}{RGB}{0, 0, 0}
+\usepackage{enumitem}
+\usepackage{fontawesome5}
+\usepackage{amsmath}
+\usepackage{ragged2e}
+\usepackage[
+    pdftitle={Lai Hoang Nguyen's CV},
+    pdfauthor={Lai Hoang Nguyen},
+    pdfcreator={LaTeX with RenderCV},
+    colorlinks=true,
+    urlcolor=primaryColor
+]{hyperref}
+\usepackage[pscoord]{eso-pic}
+\usepackage{calc}
+\usepackage{bookmark}
+\usepackage{lastpage}
+\usepackage{changepage}
+\usepackage{paracol}
+\usepackage{ifthen}
+\usepackage{needspace}
+\usepackage{iftex}
+
+\ifPDFTeX
+    \input{glyphtounicode}
+    \pdfgentounicode=1
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage{lmodern}
+\fi
+\usepackage{charter}
+\raggedright
+\AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+\pagestyle{empty}
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\columnsep}{0.15cm}
+\pagenumbering{gobble}
+\titleformat{\section}{\needspace{4\baselineskip}\bfseries\large}{}{0pt}{}[\vspace{1pt}\titlerule]
+\titlespacing{\section}{-1pt}{0.3 cm}{0.2 cm}
+\renewcommand\labelitemi{$\vcenter{\hbox{\small$\bullet$}}$}
+\newenvironment{highlights}{
+    \begin{itemize}[
+        topsep=0.10 cm,
+        parsep=0.10 cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=0 cm + 10pt
+    ]
+}{
+    \end{itemize}
+}
+\newenvironment{highlightsforbulletentries}{
+    \begin{itemize}[
+        topsep=0.10 cm,
+        parsep=0.10 cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=10pt
+    ]
+}{
+    \end{itemize}
+}
+\newenvironment{onecolentry}{
+    \begin{adjustwidth}{
+        0 cm + 0.00001 cm
+    }{
+        0 cm + 0.00001 cm
+    }
+}{
+    \end{adjustwidth}
+}
+\newenvironment{twocolentry}[2][]{
+    \onecolentry
+    \def\secondColumn{#2}
+    \setcolumnwidth{\fill, 4.5 cm}
+    \begin{paracol}{2}
+}{
+    \switchcolumn \raggedleft \secondColumn
+    \end{paracol}
+    \endonecolentry
+}
+\newenvironment{threecolentry}[3][]{
+    \onecolentry
+    \def\thirdColumn{#3}
+    \setcolumnwidth{, \fill, 4.5 cm}
+    \begin{paracol}{3}
+    {\raggedright #2} \switchcolumn
+}{
+    \switchcolumn \raggedleft \thirdColumn
+    \end{paracol}
+    \endonecolentry
+}
+\newenvironment{header}{
+    \setlength{\topsep}{0pt}\par\kern\topsep\centering\linespread{1.5}
+}{
+    \par\kern\topsep
+}
+\newcommand{\AND}{\unskip
+    \cleaders\copy\ANDbox\hskip\wd\ANDbox
+    \ignorespaces
+}
+\newsavebox\ANDbox
+\sbox\ANDbox{$|$}
+% --- END PREAMBLE ---
+
+\begin{document}
+
+\begin{header}
+    \fontsize{22 pt}{22 pt}\selectfont Hoang Nguyen Lai\\[2pt]                  
+    % {\normalsize
+    % \justifying
+    % MSc Data Science student (Newcastle, 1st class expected) with a background in economics and hands-on experience building insurance pricing and risk scoring models. Proficient in Python, SQL, and Power BI, with a particular interest in applied analytics within specialty insurance and financial risk.\par
+    % }
+
+    \vspace{5 pt}
+
+    \normalsize
+    Newcastle Upon Tyne%
+    \kern 5.0 pt%
+    \AND%
+    \kern 5.0 pt%
+    % \mbox{\href{mailto:H.N.Lai2@newcastle.ac.uk}{H.N.Lai2@newcastle.ac.uk}}%
+    \mbox{\href{mailto:nguyenhoang15869@gmail.com}{nguyenhoang15869@gmail.com}}%
+    \kern 5.0 pt%
+    \AND%
+    \kern 5.0 pt%
+    \mbox{+44 751 134 64 40}
+    \kern 5.0 pt%
+    \AND%
+    \kern 5.0 pt%
+    \mbox{\href{https://www.linkedin.com/in/hoang-nguyen-lai-a42925248/}{LinkedIn}}%
+    \kern 5.0 pt%
+    \AND%
+    \kern 5.0 pt%
+    \mbox{\href{https://github.com/NguyenIslandBoy}{Github}}%
+\end{header}
+
+% \vspace{0.1cm}
+
+% EDUCATION
+\section{Education}
+
+\begin{twocolentry}{
+    Sept 2025 – Sept 2026
+}
+    \textbf{Newcastle University}, MSc in Data Science, 1st (expected)\end{twocolentry}
+
+% \vspace{0.10 cm}
+% \begin{onecolentry}
+%     \begin{highlights}
+%         \item GPA: 3.9/4.0 (\href{https://example.com}{a link to somewhere})
+%         \item \textbf{Coursework:} Graduate Foundations of Statistics and Data Science, Data Visualization, Image Processing, Machine Learning, Deep Learning, Engineering for AI
+%     \end{highlights}
+% \end{onecolentry}
+
+% \vspace{0.15cm}
+
+\begin{twocolentry}{
+    Sept 2020 – Aug 2024
+}
+    \textbf{National Economics University}, BA in International Economics, 2:1\end{twocolentry}
+
+% \vspace{0.10 cm}
+% \begin{onecolentry}
+%     \begin{highlights}
+%         \item \textbf{GPA}: 3.47/4.0
+%         \item \textbf{Coursework:} Mathematics for Economists, Statistics in Economics and Business, Econometrics
+%     \end{highlights}
+% \end{onecolentry}
+
+% \vspace{0.15cm}
+
+\begin{twocolentry}{
+    Sept 2017 – May 2020
+}
+    \textbf{High School for Gifted Students}, English
+\end{twocolentry}
+
+% EXPERIENCE
+\section{Experience}
+\begin{twocolentry}{
+    Mar 2025 -- Jul 2025
+}
+    \textbf{Data Analytics Specialist}, SECOMUS Technology (Shopify), Hanoi, Vietnam
+\end{twocolentry}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Integrated multi‑source behavioural data (Crisp, Mixpanel, GA4 REST APIs) into a central MySQL database using Python, creating clean, analysis‑ready datasets and reducing data‑entry errors by 90–95\%.
+        \item Built customer segmentation and lifecycle models to identify high‑ and low‑value profiles and inform targeting strategies
+        \item Using A/B testing for user acquisition and conversion via different pricing, features, and collaboration campaigns
+        \item Designed and defined 100+ GA4 events for marketing campaigns, documented event parameters and trigger conditions in detail, and collaborated with the dev team to implement tracking for 10+ campaigns.
+    \end{highlights}
+\end{onecolentry}
+\vspace{0.15cm}
+\begin{twocolentry}{
+    May 2024 -- Mar 2025
+}
+    \textbf{Data Analyst}, MCI Solutions, Hanoi, Vietnam
+\end{twocolentry}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Built and automated 5+ dashboards to track performance over time, test changes, and support data‑driven decisions, mirroring monthly pricing and performance reporting.
+        \item Developed customer classification models for advertising campaigns, reducing ad costs by 10\% and increasing leads by 12--15\%.
+        \item Supported as a teaching assistant and trainer for 3 large enterprises with 50+ learners on SQL (MS SQL) and Power BI.
+        \item (Project) Designed a database backup and one-way synchronization system (MS SQL Server, Python) to ensure data integrity during system upgrades.
+        \item (Project) Led 27+ end-to-end BI projects (Power BI, Microsoft Fabric), including automating data pipelines, building dashboards, managing/training teams, and contributing to a 3--5\% sales conversion growth and 5--10\% revenue growth.
+        (\href{https://drive.google.com/drive/folders/1AfFvo3vzXdFX2Btgv0eut2VleD6L5Cr7?usp=drive_link}{View Report Demo})
+    \end{highlights}
+\end{onecolentry}
+\vspace{0.15cm}
+\begin{twocolentry}{
+    Oct 2023 -- May 2024
+}
+    \textbf{Sales Operations Specialist}, ELSA Speak, Hanoi, Vietnam
+\end{twocolentry}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Optimized lead generation workflows on HubSpot/6sense/ZoomInfo, increasing qualified leads from 80 to 150 per month while reducing cost per lead by 30\% for the US B2B market team.
+        \item Automated business performance analysis and reporting for the B2B team, saving 2--3 hours per week of manual reporting work.
+        \item Streamlined data management processes, cleaning over 15,000 records and establishing clear data entry standards.
+    \end{highlights}
+\end{onecolentry}
+
+% Personal projects
+\section{Personal projects}
+
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/insurance-pricing}{GitHub}
+    }
+\textbf{Insurance Pricing Pipeline}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Built an end-to-end insurance pricing pipeline on 678k French MTPL policies using a dbt transformation layer (3-layer medallion, 29 data quality tests) and frequency-severity decomposition as the actuarial industry standard.
+    \item Implemented Poisson GLM + LightGBM for claim frequency and Gamma GLM + LightGBM for claim severity, finding GLM outperforms on frequency (log-linear structure fits well) while LightGBM wins on severity (non-linear cost drivers) producing a 10x price differential between low and high-risk profiles.
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/credit_risk_scoring}{GitHub}
+    }
+\textbf{Credit Risk Scoring}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Built end-to-end PD model pipeline using industry-standard WoE/IV feature selection, logistic regression scorecard, and LightGBM challenger (Gini 0.48, KS 0.36) on Home Credit dataset
+    \item Implemented credit-standard evaluation metrics (Gini, KS, PSI) and SHAP explainability; caught and fixed a WoE bin-edge data leakage bug that collapsed LR AUC from 0.66 to 0.56
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/gambling-risk-pipeline}{GitHub}
+    }
+\textbf{Gambling Risk Pipeline}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Built an early-warning ML pipeline on 4,134 real bwin subscriber records to predict Responsible Gambling intervention triggers, achieving AUROC 0.746 vs the original paper's logistic regression baseline of ~0.70.
+    \item Engineered behavioural time-series features from raw daily aggregates including stake escalation slope, loss-chasing index, and cross-game diversity - with explicit missingness flags distinguishing true zeros from insufficient data
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/financial_sentiment_nlp}{GitHub}
+    }
+\textbf{Financial Sentiment NLP}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Fine-tuned FinBERT as a frozen feature extractor for financial news sentiment classification, achieving 0.976 macro F1 across all three classes including minority negative class (13\% prevalence)
+    \item Designed modular pipeline on Financial PhraseBank; embeddings show cosine similarity of -0.13 between negative and positive classes confirming strong credit stress signal separation
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/stack-overflow-dev-survey}{GitHub}
+    }
+\textbf{Stack Overflow Developer Survey Analytics}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Analysed 360,000+ developer survey responses across 5 years (2021–2025), engineering a cross-year ingestion pipeline to harmonise 170+ schema changes and column renames
+    \item Identified key findings including Rust's persistent 12pp desire gap, Java's 5.9pp adoption decline, and near-universal AI tool adoption (80\%+) across developer roles by 2025
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+
+
+% \begin{twocolentry}{
+%     \href{https://github.com/NguyenIslandBoy/sdo_classifier}{GitHub}
+%     }
+% \textbf{Solar Flare Detection}
+% \end{twocolentry}
+% \begin{onecolentry}
+% \begin{itemize}
+%     \item Built end-to-end ML pipeline: SDOBenchmark ingestion -> GCP Cloud Storage -> EfficientNetB3 fine-tuned for binary solar flare risk classification (val F1: 0.74, test F1: 0.69 on 883 samples)
+%     \item Deployed FastAPI inference endpoint (150ms CPU latency) containerised with Docker; live Gradio demo on Hugging Face Spaces
+%     \item Applied physically-justified augmentation strategy per solar imagery domain constraints; 2-phase progressive unfreezing with GOES-grounded classification thresholds
+% \end{itemize}
+% \end{onecolentry}
+% \vspace{0.15cm}
+
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/TrustLens}{GitHub}
+    }
+\textbf{TrustLens: Methodology Extraction Pipeline}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Built a fully local batch pipeline fetching 50+ open-access social science papers via OpenAlex API, achieving 98\% LLM extraction success rate using Llama 3.1 8B
+    \item Automatically isolates methods sections via heuristic segmentation and extracts structured methodology metadata into databases with zero external API calls for inference.
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/Vessel-Fouling-Risk-Assessment}{GitHub}
+    }
+\textbf{Vessel Fouling Risk Assessment}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Built a Python ETL pipeline processing 809 vessels and 50,000+ events from Global Fishing Watch and CMEMS APIs into Azure PostgreSQL, identifying 71 critical-risk vessels across the fleet.
+    \item Developed a composite fouling exposure score (0–100) weighting SST and chlorophyll-a against days at sea, loitering, and AIS gaps; delivered via a 3-page Power BI dashboard for stakeholders.
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+\begin{twocolentry}{
+    \href{https://github.com/NguyenIslandBoy/EV-RAG-Chatbot-ChargeGPT-Prototype}{GitHub}
+    }
+\textbf{EV Charging Analytics Assistant (ChargeGPT)}
+\end{twocolentry}
+\begin{onecolentry}
+\begin{itemize}
+    \item Built ChargeGPT, a RAG system achieving 90\% accuracy on structured EV charging queries with 0\% hallucination on out-of-scope questions, versus 13.3\% baseline with LLM-only approach.
+    \item Ingested 66,446 time‑stamped EV charging sessions (3 sites, 4 years) into DuckDB and modelled utilisation and load patterns, providing a foundation for risk/pricing style questions (demand, peak usage, behaviour).
+\end{itemize}
+\end{onecolentry}
+\vspace{0.15cm}
+
+% \begin{twocolentry}{
+%     \href{https://github.com/NguyenIslandBoy/learner_ropout_project_template}{GitHub}
+%     }
+% \textbf{Learner Dropout Analysis}
+% \end{twocolentry}
+% \begin{onecolentry}
+% \begin{itemize}
+%     \item Analysed 423,000+ engagement records from 20,000+ learners across 7 course runs, revealing 63.8\% attrition between Weeks 1–2 and 7 steps with sub-90\% completion rates.
+%     \item Built a reproducible R pipeline using ProjectTemplate and renv with automated preprocessing, caching, and PDF report generation via R Markdown.
+% \end{itemize}
+% \end{onecolentry}
+% \vspace{0.15cm}
+
+% \begin{twocolentry}{
+%     \href{https://github.com/NguyenIslandBoy/Fine-grained-Classification-CUB-200-}{GitHub}
+%     }
+% \textbf{Fine-Grained Bird Species Classification}
+% \end{twocolentry}
+% \begin{onecolentry}
+% \begin{itemize}
+%     \item Achieved 86\% test accuracy on 200 bird species using EfficientNetB5 with progressive unfreezing and frozen BatchNorm fine-tuning.
+%     \item Designed a custom 7.2M-parameter CNN with residual connections, squeeze-and-excitation attention, and depthwise separable convolutions, achieving 123$\times$ over random baseline.
+% \end{itemize}
+% \end{onecolentry}
+
+% \begin{twocolentry}{
+%     \href{https://github.com/NguyenIslandBoy/Text-generation}{GitHub}
+%     }
+% \textbf{Word-Level Language Model for Author-Style Text Generation}
+% \end{twocolentry}
+% \begin{onecolentry}
+% \begin{itemize}
+%     \item Built a 2-layer GRU text generator (3,295-token vocabulary) with 90\% next-word accuracy and top-k/top-p nucleus sampling for coherent output.
+%     \item Optimised vocabulary threshold and architecture (1–2 layers, 256–512 units), reducing UNK token rate from 12\% to <1\%; benchmarked against GPT-4 on identical prompts.
+% \end{itemize}
+% \end{onecolentry}
+
+% \begin{twocolentry}{
+%     \href{https://github.com/NguyenIslandBoy/PySpark-Spark-Query-Optimization}{GitHub}}
+% \textbf{Scalable PySpark Data Processing Pipeline}
+% \end{twocolentry}
+% \begin{onecolentry}
+% \begin{itemize}
+%     \item Engineered a distributed PySpark pipeline processing up to 132M NYC taxi records, delivering zone-level profitability and traffic rankings through optimised multi-stage aggregation and broadcast joins.
+%     \item Reduced execution overhead \textasciitilde65\% on mid-scale datasets via broadcast joins, early column pruning, and single-pass filtering; implemented modified Z-score outlier detection with approximate median for scalable data quality enforcement.
+% \end{itemize}
+% \end{onecolentry}
+
+% SKILLS
+\section{Skills}
+\begin{onecolentry}
+\textbf{Languages:} Python (PyTorch, TensorFlow, FastAPI, Pandas, NumPy), SQL (PostgreSQL, MySQL, MS SQL), R, NoSQL (MongoDB), PySpark, SparkSQL \\[0.1cm]
+\textbf{ML \& DL:} Image Classification, Semantic Segmentation, Transfer Learning, Fine-tuning, Feature Engineering, A/B Testing \\[0.1cm]
+\textbf{Data Engineering:} ETL Pipelines, REST APIs, DuckDB \\[0.1cm]
+\textbf{MLOps \& Deployment:} Docker, FastAPI, Hugging Face (Hub, Spaces), Gradio, Streamlit \\[0.1cm]
+\textbf{Cloud:} GCP (Cloud Storage, Compute), Microsoft Fabric (Gen2, Data Lake, LakeHouse, Warehouse, Eventstream, KQL), Render \\[0.1cm]
+\textbf{BI \& Analytics:} Power BI (DAX, Power Query, Fabric), Looker Studio, Google Analytics 4, Mixpanel \\[0.1cm]
+\textbf{Tools:} Git, Postman, HubSpot, Meta Business Suite \\[0.1cm]
+\textbf{Others}: IELTS 7.5
+\end{onecolentry}
+
+% DOMAINS
+% \section{Domains}
+% \begin{onecolentry}
+%     Ed-tech, SaaS, Product
+% \end{onecolentry}
+
+% REFEREES
+% \section{Referees}
+% \begin{onecolentry}
+%     \textbf{Referee 1} \\
+%     Dr Huizhi Liang \\
+%     Senior Lecturer in Computing Science \\
+%     Newcatle University \\
+%     Email: Huizhi.Liang@newcastle.ac.uk \\[1em]
+    
+%     \textbf{Referee 2} \\
+%     Dr James Bentham \\
+%     Reader in Statistics \\
+%     Newcatle University \\
+%     Email: James.Bentham@newcastle.ac.uk \\
+% \end{onecolentry}
+
+\end{document}

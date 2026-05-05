@@ -1,4 +1,6 @@
 js/config.js
+node_modules
+.vercel
 CV.aux
 CV.fdb_latexmk
 CV.fls

@@ -27,7 +27,7 @@ async function callGroq(apiKey, model, prompt, retries) {
     if (retries >= 4) throw new Error('Rate limit hit repeatedly. Wait a minute and try again.');
     var wait = Math.pow(2, retries) * 3000;
     document.getElementById('loading-label').textContent =
-      'Rate limit hit — retrying in ' + (wait / 1000) + 's...';
+      'Processing — this may take a moment...';
     await new Promise(function (r) { setTimeout(r, wait); });
     return callGroq(apiKey, model, prompt, retries + 1);
   }

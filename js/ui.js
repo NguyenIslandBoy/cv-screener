@@ -108,7 +108,7 @@ async function runEvaluation() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-
+  setupAuth();
   // Tab clicks
   document.querySelectorAll('.tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -160,3 +160,45 @@ document.addEventListener('DOMContentLoaded', function () {
   showState('empty');
   updatePills();
 });
+
+// ── Auth gate ─────────────────────────────────────────────────
+function setupAuth() {
+  var gate  = document.getElementById('auth-gate');
+  var input = document.getElementById('auth-input');
+  var btn   = document.getElementById('auth-btn');
+  var error = document.getElementById('auth-error');
+
+  // Already authenticated this session
+  if (sessionStorage.getItem('cv_screen_auth') === '1') {
+    gate.classList.add('hidden');
+    return;
+  }
+
+  // Show gate
+  gate.classList.remove('hidden');
+
+  function attempt() {
+    var val = input.value.trim();
+    // Passphrase comes from config.js as APP_PASSPHRASE
+    var expected = typeof APP_PASSPHRASE !== 'undefined' ? APP_PASSPHRASE : '';
+    if (!expected) {
+      // No passphrase set — allow through (local dev)
+      gate.classList.add('hidden');
+      return;
+    }
+    if (val === expected) {
+      sessionStorage.setItem('cv_screen_auth', '1');
+      gate.classList.add('hidden');
+      error.textContent = '';
+    } else {
+      error.textContent = 'Incorrect passphrase.';
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  btn.addEventListener('click', attempt);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') attempt();
+  });
+}

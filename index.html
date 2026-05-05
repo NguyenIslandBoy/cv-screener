@@ -7,7 +7,16 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-
+  <!-- ── Auth gate ─────────────────────────────────────────── -->
+  <div class="auth-gate" id="auth-gate">
+    <div class="auth-box">
+      <div class="logo">CV<span class="logo-dot">.</span>Screen</div>
+      <p class="auth-hint">Enter your access passphrase to continue.</p>
+      <input type="password" id="auth-input" placeholder="Passphrase" autocomplete="off" />
+      <button class="btn-primary" id="auth-btn">Enter →</button>
+      <p class="auth-error" id="auth-error"></p>
+    </div>
+  </div>
   <div class="app">
 
     <!-- ── Header ───────────────────────────────────── -->

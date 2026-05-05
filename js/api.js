@@ -1,17 +1,34 @@
-// api.js — calls Groq API, returns parsed result object
-// Throws descriptive errors so ui.js can display them cleanly.
+// api.js — calls /api/chat proxy (Vercel) or Groq directly (local file://)
+
+function getEndpoint() {
+  if (window.location.protocol === 'file:') {
+    return 'https://api.groq.com/openai/v1/chat/completions';
+  }
+  return '/api/chat';
+}
+
+function getHeaders(apiKey) {
+  if (window.location.protocol === 'file:') {
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    };
+  }
+  var passphrase = typeof APP_PASSPHRASE !== 'undefined' ? APP_PASSPHRASE : '';
+  return {
+    'Content-Type': 'application/json',
+    'x-app-passphrase': passphrase
+  };
+}
 
 async function callGroq(apiKey, model, prompt, retries) {
   retries = retries || 0;
 
   var response;
   try {
-    response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    response = await fetch(getEndpoint(), {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey
-      },
+      headers: getHeaders(apiKey),
       body: JSON.stringify({
         model: model,
         messages: [{ role: 'user', content: prompt }],
@@ -20,29 +37,29 @@ async function callGroq(apiKey, model, prompt, retries) {
       })
     });
   } catch (err) {
-    throw new Error('Network error — check your internet connection. (' + err.message + ')');
+    throw new Error('Network error — check your connection. (' + err.message + ')');
   }
 
   if (response.status === 429) {
     if (retries >= 4) throw new Error('Rate limit hit repeatedly. Wait a minute and try again.');
     var wait = Math.pow(2, retries) * 3000;
-    document.getElementById('loading-label').textContent =
-      'Processing — this may take a moment...';
+    document.getElementById('loading-label').textContent = 'Processing — this may take a moment...';
     await new Promise(function (r) { setTimeout(r, wait); });
     return callGroq(apiKey, model, prompt, retries + 1);
   }
+
+  if (response.status === 401) throw new Error('Unauthorized. Check your passphrase or API key.');
 
   if (!response.ok) {
     var errorBody;
     try { errorBody = await response.json(); } catch (_) { errorBody = {}; }
     var detail = (errorBody.error && errorBody.error.message) ? errorBody.error.message : response.statusText;
-    if (response.status === 401) throw new Error('Invalid API key. Check js/config.js.');
-    throw new Error('Groq API error ' + response.status + ': ' + detail);
+    throw new Error('API error ' + response.status + ': ' + detail);
   }
 
   var data;
   try { data = await response.json(); } catch (_) {
-    throw new Error('Could not parse Groq response as JSON.');
+    throw new Error('Could not parse response as JSON.');
   }
 
   var raw = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;

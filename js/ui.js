@@ -67,7 +67,9 @@ async function runEvaluation() {
   if (!cv || !jd) return;
 
   var apiKey = typeof GROQ_API_KEY !== 'undefined' ? GROQ_API_KEY : '';
-  if (!apiKey || apiKey === 'gsk_YOUR_KEY_HERE') {
+  var isLocal = window.location.protocol === 'file:';
+
+  if (isLocal && (!apiKey || apiKey === 'gsk_YOUR_KEY_HERE')) {
     showError('No API key found. Open js/config.js and paste your Groq key into GROQ_API_KEY.');
     return;
   }

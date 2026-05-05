@@ -7,6 +7,7 @@ export default async function handler(req) {
 
   const passphrase = req.headers.get('x-app-passphrase');
   if (!passphrase || passphrase !== process.env.APP_PASSPHRASE) {
+    console.log('received:', JSON.stringify(passphrase), 'expected:', JSON.stringify(process.env.APP_PASSPHRASE));
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 

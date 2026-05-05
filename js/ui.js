@@ -1,5 +1,5 @@
 // ui.js — tab switching, pill state, button enable/disable, run handler
-
+var userPassphrase = '';
 // ── Tab switching ────────────────────────────────────────────
 function switchTab(tabName) {
   document.querySelectorAll('.tab').forEach(function (tab) {
@@ -189,6 +189,7 @@ function setupAuth() {
       return;
     }
     if (val === expected) {
+      userPassphrase = val;
       sessionStorage.setItem('cv_screen_auth', '1');
       gate.classList.add('hidden');
       error.textContent = '';

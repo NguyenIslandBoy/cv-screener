@@ -14,10 +14,9 @@ function getHeaders(apiKey) {
       'Authorization': 'Bearer ' + apiKey
     };
   }
-  var passphrase = typeof APP_PASSPHRASE !== 'undefined' ? APP_PASSPHRASE : '';
   return {
     'Content-Type': 'application/json',
-    'x-app-passphrase': passphrase
+    'x-app-passphrase': typeof userPassphrase !== 'undefined' ? userPassphrase : ''
   };
 }
 

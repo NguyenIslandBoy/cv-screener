@@ -171,6 +171,8 @@ function setupAuth() {
 
   // Already authenticated this session
   if (sessionStorage.getItem('cv_screen_auth') === '1') {
+    var stored = sessionStorage.getItem('cv_screen_pass') || '';
+    window.userPassphrase = stored;
     gate.classList.add('hidden');
     return;
   }
@@ -180,22 +182,29 @@ function setupAuth() {
 
   function attempt() {
     var val = input.value.trim();
-    // Passphrase comes from config.js as APP_PASSPHRASE
-    var expected = typeof APP_PASSPHRASE !== 'undefined' ? APP_PASSPHRASE : '';
-    if (!expected) {
-      // No passphrase set — allow through (local dev)
-      gate.classList.add('hidden');
-      return;
-    }
-    if (val === expected) {
+    if (!val) return;
+
+    var isLocal = window.location.protocol === 'file:';
+
+    if (isLocal) {
+      var expected = typeof APP_PASSPHRASE !== 'undefined' ? APP_PASSPHRASE : '';
+      if (!expected || val === expected) {
+        window.userPassphrase = val;
+        sessionStorage.setItem('cv_screen_auth', '1');
+        sessionStorage.setItem('cv_screen_pass', val);
+        gate.classList.add('hidden');
+        error.textContent = '';
+      } else {
+        error.textContent = 'Incorrect passphrase.';
+        input.value = '';
+        input.focus();
+      }
+    } else {
       window.userPassphrase = val;
       sessionStorage.setItem('cv_screen_auth', '1');
+      sessionStorage.setItem('cv_screen_pass', val);
       gate.classList.add('hidden');
       error.textContent = '';
-    } else {
-      error.textContent = 'Incorrect passphrase.';
-      input.value = '';
-      input.focus();
     }
   }
 

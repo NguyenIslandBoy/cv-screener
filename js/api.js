@@ -16,7 +16,7 @@ function getHeaders(apiKey) {
   }
   return {
     'Content-Type': 'application/json',
-    'x-app-passphrase': typeof userPassphrase !== 'undefined' ? userPassphrase : ''
+    'x-app-passphrase': window.userPassphrase || ''
   };
 }
 

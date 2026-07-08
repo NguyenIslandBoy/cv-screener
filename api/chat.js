@@ -1,5 +1,8 @@
 export const config = { runtime: 'edge' };
 
+const DEFAULT_BASE_URL = 'https://openrouter.ai/api/v1';
+const DEFAULT_MODEL = 'tencent/hy3:free';
+
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
@@ -7,11 +10,10 @@ export default async function handler(req) {
 
   const passphrase = req.headers.get('x-app-passphrase');
   if (!passphrase || passphrase !== process.env.APP_PASSPHRASE) {
-    console.log('received:', JSON.stringify(passphrase), 'expected:', JSON.stringify(process.env.APP_PASSPHRASE));
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.LLM_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key not configured on server.' }), { status: 500 });
   }
@@ -21,8 +23,14 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Invalid request body.' }), { status: 400 });
   }
 
+  if (!body.model) {
+    body.model = process.env.LLM_MODEL || DEFAULT_MODEL;
+  }
+
+  const baseUrl = (process.env.LLM_BASE_URL || DEFAULT_BASE_URL).replace(/\/$/, '');
+
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const upstream = await fetch(baseUrl + '/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,12 +39,12 @@ export default async function handler(req) {
       body: JSON.stringify(body)
     });
 
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      headers: { 'Content-Type': 'application/json' }
+    return new Response(upstream.body, {
+      status: upstream.status,
+      headers: {
+        'Content-Type': upstream.headers.get('content-type') || 'application/json'
+      }
     });
-
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Proxy error: ' + err.message }), { status: 500 });
   }

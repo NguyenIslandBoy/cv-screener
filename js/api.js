@@ -1,17 +1,20 @@
-// api.js — calls /api/chat proxy (Vercel) or Groq directly (local file://)
+// api.js — streaming chat calls: /api/chat proxy (Vercel) or provider directly (local file://)
 
 function getEndpoint() {
   if (window.location.protocol === 'file:') {
-    return 'https://api.groq.com/openai/v1/chat/completions';
+    var base = (typeof LLM_BASE_URL !== 'undefined' && LLM_BASE_URL)
+      ? LLM_BASE_URL
+      : 'https://openrouter.ai/api/v1';
+    return base.replace(/\/$/, '') + '/chat/completions';
   }
   return '/api/chat';
 }
 
-function getHeaders(apiKey) {
+function getHeaders() {
   if (window.location.protocol === 'file:') {
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + apiKey
+      'Authorization': 'Bearer ' + (typeof LLM_API_KEY !== 'undefined' ? LLM_API_KEY : '')
     };
   }
   return {
@@ -20,20 +23,49 @@ function getHeaders(apiKey) {
   };
 }
 
-async function callGroq(apiKey, model, prompt, retries) {
+// ── SSE line parser ───────────────────────────────────────────
+// Pure. Returns {type:'delta',text} | {type:'done'} | null (line carries nothing useful).
+function parseSSELine(line) {
+  if (!line || line.charAt(0) === ':') return null;
+  if (line.indexOf('data:') !== 0) return null;
+
+  var payload = line.slice(5).trim();
+  if (payload === '[DONE]') return { type: 'done' };
+
+  var obj;
+  try { obj = JSON.parse(payload); } catch (_) { return null; }
+
+  var delta = obj.choices && obj.choices[0] && obj.choices[0].delta;
+  var text = delta && delta.content;
+  if (typeof text === 'string' && text.length) return { type: 'delta', text: text };
+  return null;
+}
+
+// ── Streaming chat call ───────────────────────────────────────
+async function streamChat(messages, onDelta, onStatus, retries) {
   retries = retries || 0;
+
+  if (window.location.protocol === 'file:') {
+    var key = typeof LLM_API_KEY !== 'undefined' ? LLM_API_KEY : '';
+    if (!key || key === 'PASTE_YOUR_KEY_HERE') {
+      throw new Error('No API key found. Open js/config.js and paste your provider key into LLM_API_KEY.');
+    }
+  }
+
+  var body = {
+    messages: messages,
+    max_tokens: 8000,
+    temperature: 0.5,
+    stream: true
+  };
+  if (typeof LLM_MODEL !== 'undefined' && LLM_MODEL) body.model = LLM_MODEL;
 
   var response;
   try {
     response = await fetch(getEndpoint(), {
       method: 'POST',
-      headers: getHeaders(apiKey),
-      body: JSON.stringify({
-        model: model,
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 4000,
-        temperature: 0.2
-      })
+      headers: getHeaders(),
+      body: JSON.stringify(body)
     });
   } catch (err) {
     throw new Error('Network error — check your connection. (' + err.message + ')');
@@ -42,9 +74,9 @@ async function callGroq(apiKey, model, prompt, retries) {
   if (response.status === 429) {
     if (retries >= 4) throw new Error('Rate limit hit repeatedly. Wait a minute and try again.');
     var wait = Math.pow(2, retries) * 3000;
-    document.getElementById('loading-label').textContent = 'Processing — this may take a moment...';
+    if (onStatus) onStatus('Rate limited — retrying in ' + Math.round(wait / 1000) + 's…');
     await new Promise(function (r) { setTimeout(r, wait); });
-    return callGroq(apiKey, model, prompt, retries + 1);
+    return streamChat(messages, onDelta, onStatus, retries + 1);
   }
 
   if (response.status === 401) throw new Error('Unauthorized. Check your passphrase or API key.');
@@ -56,24 +88,30 @@ async function callGroq(apiKey, model, prompt, retries) {
     throw new Error('API error ' + response.status + ': ' + detail);
   }
 
-  var data;
-  try { data = await response.json(); } catch (_) {
-    throw new Error('Could not parse response as JSON.');
+  var reader = response.body.getReader();
+  var decoder = new TextDecoder();
+  var buffer = '';
+  var full = '';
+
+  function handleLine(rawLine) {
+    var parsed = parseSSELine(rawLine.replace(/\r$/, ''));
+    if (parsed && parsed.type === 'delta') {
+      full += parsed.text;
+      onDelta(parsed.text, full);
+    }
   }
 
-  var raw = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-  if (!raw) throw new Error('Empty response from model. Try again.');
-
-  var cleaned = raw.trim()
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim();
-
-  var result;
-  try { result = JSON.parse(cleaned); } catch (_) {
-    throw new Error('Model returned invalid JSON. Try again.\n\nRaw output:\n' + cleaned.slice(0, 300));
+  while (true) {
+    var chunk = await reader.read();
+    if (chunk.done) break;
+    buffer += decoder.decode(chunk.value, { stream: true });
+    var lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (var i = 0; i < lines.length; i++) handleLine(lines[i]);
   }
+  buffer += decoder.decode();
+  if (buffer) handleLine(buffer);
 
-  return result;
+  if (!full.trim()) throw new Error('Empty response from model. Try again.');
+  return full;
 }

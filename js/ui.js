@@ -1,4 +1,5 @@
-// ui.js — tab switching, pill state, button enable/disable, run handler
+// ui.js — tabs, pills, workflow bar, composer, auth gate, resizable divider
+
 // ── Tab switching ────────────────────────────────────────────
 function switchTab(tabName) {
   document.querySelectorAll('.tab').forEach(function (tab) {
@@ -33,83 +34,64 @@ function updatePills() {
   } else {
     ghPill.classList.add('pill-hidden');
   }
-
-  document.getElementById('run-btn').disabled = !(hasCV && hasJD);
 }
 
-// ── Results panel state ──────────────────────────────────────
-// Accepted values: 'empty' | 'loading' | 'error' | 'results'
-function showState(state) {
-  document.getElementById('state-empty').classList.toggle('hidden',    state !== 'empty');
-  document.getElementById('state-loading').classList.toggle('visible', state === 'loading');
-  document.getElementById('state-error').classList.toggle('visible',   state === 'error');
-  document.getElementById('state-results').classList.toggle('visible', state === 'results');
-
-  if (state !== 'loading') {
-    document.getElementById('loading-label').textContent = 'Evaluating...';
-  }
+// ── Composer busy state ──────────────────────────────────────
+function setComposerBusy(busy) {
+  var send = document.getElementById('send-btn');
+  send.disabled = busy;
+  send.textContent = busy ? '…' : 'Send';
+  document.querySelectorAll('.wf-btn').forEach(function (b) { b.disabled = busy; });
 }
 
-function showError(message) {
-  document.getElementById('error-message').textContent = message;
-  showState('error');
+// ── Workflow bar ─────────────────────────────────────────────
+function setupWorkflowBar() {
+  var bar = document.getElementById('workflow-bar');
+  var moreBtn = document.getElementById('wf-more-btn');
+
+  SKILL_CONTENT.workflows.forEach(function (wf) {
+    var btn = document.createElement('button');
+    btn.className = 'wf-btn' + (wf.primary ? '' : ' wf-secondary wf-hidden');
+    btn.textContent = wf.label;
+    btn.title = wf.message;
+    btn.addEventListener('click', function () { sendChatMessage(wf.message); });
+    bar.insertBefore(btn, moreBtn);
+  });
+
+  var expanded = false;
+  moreBtn.addEventListener('click', function () {
+    expanded = !expanded;
+    document.querySelectorAll('.wf-secondary').forEach(function (b) {
+      b.classList.toggle('wf-hidden', !expanded);
+    });
+    moreBtn.textContent = expanded ? 'Less −' : 'More +';
+  });
 }
 
-async function runEvaluation() {
-  var cv        = document.getElementById('cv-text').value.trim();
-  var jd        = document.getElementById('jd-text').value.trim();
-  var github    = document.getElementById('github-username').value.trim();
-  var portfolio = document.getElementById('portfolio-text').value.trim();
-  var model = typeof GROQ_MODEL !== 'undefined' ? GROQ_MODEL : 'openai/gpt-oss-120b';
-  var roleType  = document.getElementById('role-type').value;
+// ── Composer ─────────────────────────────────────────────────
+function setupComposer() {
+  var input = document.getElementById('composer-input');
+  var send  = document.getElementById('send-btn');
 
-  if (!cv || !jd) return;
-
-  var apiKey = typeof GROQ_API_KEY !== 'undefined' ? GROQ_API_KEY : '';
-  var isLocal = window.location.protocol === 'file:';
-
-  if (isLocal && (!apiKey || apiKey === 'gsk_YOUR_KEY_HERE')) {
-    showError('No API key found. Open js/config.js and paste your Groq key into GROQ_API_KEY.');
-    return;
+  function submit() {
+    var text = input.value;
+    if (!text.trim() || chatBusy) return;
+    input.value = '';
+    sendChatMessage(text);
   }
 
-  var btn = document.getElementById('run-btn');
-  btn.disabled = true;
-  btn.textContent = 'Evaluating...';
-
-  document.getElementById('loading-model').textContent = model;
-  showState('loading');
-
-  try {
-    // ── Call 1: evaluation ───────────────────────────────────
-    document.getElementById('loading-label').textContent = 'Analysing fit...';
-    var githubSummary = portfolio || github || '';
-    var evalPrompt = buildPrompt(cv, jd, githubSummary, roleType);
-    var evalResult = await callGroq(apiKey, model, evalPrompt);
-
-    // ── Small delay to avoid rate limit between two heavy calls
-    // await new Promise(function (r) { setTimeout(r, 4000); });
-
-    // ── Call 2: rewrite ──────────────────────────────────────
-    document.getElementById('loading-label').textContent = 'Polishing CV...';
-    var rewritePrompt = buildRewritePrompt(cv, jd, evalResult.suggestions || []);
-    var rewriteResult = await callGroq(apiKey, model, rewritePrompt);
-
-    document.getElementById('results-meta').textContent = model;
-    renderResults(evalResult, rewriteResult, roleType);
-    showState('results');
-
-  } catch (err) {
-    showError(err.message || 'Something went wrong. Check your API key and try again.');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Run Evaluation →';
-    updatePills();
-  }
+  send.addEventListener('click', submit);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', function () {
   setupAuth();
+
   // Tab clicks
   document.querySelectorAll('.tab').forEach(function (tab) {
     tab.addEventListener('click', function () {
@@ -122,8 +104,15 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById(id).addEventListener('input', updatePills);
   });
 
-  // Run button
-  document.getElementById('run-btn').addEventListener('click', runEvaluation);
+  setupWorkflowBar();
+  setupComposer();
+
+  document.getElementById('download-chat-btn').addEventListener('click', downloadChat);
+
+  // Model label (local mode knows the model; deployed mode uses the server's)
+  var modelName = (typeof LLM_MODEL !== 'undefined' && LLM_MODEL) ? LLM_MODEL : 'server default';
+  document.getElementById('results-meta').textContent = modelName;
+  document.getElementById('model-info').textContent = modelName;
 
   // Resizable divider
   var divider    = document.getElementById('divider');
@@ -157,8 +146,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.style.userSelect = '';
   });
 
-  // Initial state
-  showState('empty');
   updatePills();
 });
 

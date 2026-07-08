@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CV Screener</title>
+  <title>CV.Screen — Career Strategy Assistant</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -22,7 +22,7 @@
     <!-- ── Header ───────────────────────────────────── -->
     <header class="header">
       <span class="logo">CV<span class="logo-dot">.</span>Screen</span>
-      <span class="header-badge">v0.1 · local</span>
+      <span class="header-badge">v0.2 · career chat</span>
     </header>
 
     <!-- ── Main ─────────────────────────────────────── -->
@@ -129,21 +129,14 @@
           </div>
 
           <!-- Tab 4: Settings -->
-        <div class="tab-panel" id="panel-settings">
-        <div class="field">
-            <label for="role-type">Role type</label>
-            <select id="role-type">
-            <option value="stem">STEM / Technical — includes portfolio scoring + plan</option>
-            <option value="non-stem">Non-STEM — skips portfolio, no plan</option>
-            </select>
-        </div>
-
-        <div class="notice notice-info">
-            <strong>Models</strong><br/>
-            Model → <code>openai/gpt-oss-120b</code><br/><br/>
-            <!-- Change models or API key in <code>js/config.js</code>. Never commit that file. -->
-        </div>
-        </div>
+          <div class="tab-panel" id="panel-settings">
+            <div class="notice notice-info">
+              <strong>Model</strong><br/>
+              <span id="model-info">—</span><br/><br/>
+              Endpoint and model come from <code>LLM_BASE_URL</code> / <code>LLM_MODEL</code>
+              (Vercel env vars, or <code>js/config.js</code> when opened locally).
+            </div>
+          </div>
 
         </div><!-- /tab-panels -->
 
@@ -154,9 +147,6 @@
             <span class="pill" id="pill-jd">JD ✗</span>
             <span class="pill pill-hidden" id="pill-github">GitHub ✓</span>
           </div>
-          <button class="btn-primary" id="run-btn" disabled>
-            Run Evaluation →
-          </button>
         </div>
 
       </div><!-- /panel-left -->
@@ -164,47 +154,34 @@
         <!-- Divider -->
       <div id="divider"></div>
 
-      <!-- Right panel: results -->
+      <!-- Right panel: chat -->
       <div class="panel-right">
 
         <div class="results-header">
-          <span class="results-title">Results</span>
-          <span class="results-meta" id="results-meta"></span>
+          <span class="results-title">Career Strategy Chat</span>
+          <div class="results-header-actions">
+            <span class="results-meta" id="results-meta"></span>
+            <button class="btn-secondary" id="download-chat-btn">Export .md</button>
+          </div>
         </div>
 
-        <div class="results-body" id="results-body">
+        <div class="workflow-bar" id="workflow-bar">
+          <button class="wf-btn wf-more" id="wf-more-btn">More +</button>
+        </div>
 
-          <!-- Empty state -->
-          <div class="state-empty" id="state-empty">
+        <div class="chat-thread" id="chat-thread">
+          <div class="state-empty" id="chat-empty">
             <div class="empty-icon">◎</div>
-            <h2>No evaluation yet</h2>
-            <p>Fill in the inputs on the left and hit Run Evaluation.</p>
-            <ol class="empty-steps">
-              <li>Paste or upload your CV on the CV tab</li>
-              <li>Paste the job description on the JD tab</li>
-              <li>Hit Run Evaluation</li>
-            </ol>
+            <h2>Career Strategy Assistant</h2>
+            <p>Add your CV and a job description on the left, then launch a workflow above — or just ask a question below.</p>
           </div>
+        </div>
 
-          <!-- Loading state -->
-          <div class="state-loading" id="state-loading">
-            <div class="spinner"></div>
-            <span class="loading-label" id="loading-label">Evaluating...</span>
-            <span class="loading-model" id="loading-model"></span>
-          </div>
-
-          <!-- Error state -->
-          <div class="state-error" id="state-error">
-            <div class="error-box">
-              <strong>Error</strong>
-              <span id="error-message"></span>
-            </div>
-          </div>
-
-          <!-- Results state — populated by render.js -->
-          <div class="state-results" id="state-results"></div>
-
-        </div><!-- /results-body -->
+        <div class="composer">
+          <textarea id="composer-input" rows="2"
+            placeholder="Ask anything about your job search… (Enter to send, Shift+Enter for a new line)"></textarea>
+          <button class="btn-primary" id="send-btn">Send</button>
+        </div>
 
       </div><!-- /panel-right -->
 
@@ -214,21 +191,25 @@
 
   <!-- JS modules — loaded in dependency order -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script>
-    // Local dev only — config.js is never deployed
-    // On Vercel, GROQ_API_KEY and APP_PASSPHRASE live in environment variables
-    // and are accessed server-side via api/chat.js
-    var GROQ_API_KEY   = '';
-    var GROQ_MODEL     = 'openai/gpt-oss-120b';
+    // Local dev only — config.js is never deployed.
+    // On Vercel, LLM_API_KEY / LLM_BASE_URL / LLM_MODEL / APP_PASSPHRASE live in
+    // environment variables and are used server-side by api/chat.js.
+    var LLM_API_KEY    = '';
+    var LLM_BASE_URL   = '';
+    var LLM_MODEL      = '';
     var APP_PASSPHRASE = '';
   </script>
   <script src="js/config.js" onerror="void(0)"></script>
-  <script src="js/reader.js"></script>
+  <script src="js/skill-content.js"></script>
   <script src="js/prompt.js"></script>
+  <script src="js/reader.js"></script>
   <script src="js/api.js"></script>
   <script src="js/render.js"></script>
+  <script src="js/chat.js"></script>
   <script src="js/download.js"></script>
   <script src="js/ui.js"></script>
 

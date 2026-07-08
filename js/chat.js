@@ -51,6 +51,11 @@ async function startAssistantTurn() {
 
 function retryTurn(failedRow) {
   if (chatBusy) return;
+  // Stale retry: the conversation moved on past the failed turn.
+  if (!chatHistory.length || chatHistory[chatHistory.length - 1].role !== 'user') {
+    failedRow.remove();
+    return;
+  }
   failedRow.remove();
   startAssistantTurn();
 }

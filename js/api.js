@@ -24,7 +24,8 @@ function getHeaders() {
 }
 
 // ── SSE line parser ───────────────────────────────────────────
-// Pure. Returns {type:'delta',text} | {type:'done'} | null (line carries nothing useful).
+// parseSSELine — pure. Returns {type:'delta',text} | {type:'reasoning'} |
+// {type:'finish',reason} | {type:'done'} | null (line carries nothing useful).
 function parseSSELine(line) {
   if (!line || line.charAt(0) === ':') return null;
   if (line.indexOf('data:') !== 0) return null;
@@ -35,9 +36,19 @@ function parseSSELine(line) {
   var obj;
   try { obj = JSON.parse(payload); } catch (_) { return null; }
 
-  var delta = obj.choices && obj.choices[0] && obj.choices[0].delta;
+  var choice = obj.choices && obj.choices[0];
+  if (!choice) return null;
+
+  var delta = choice.delta;
   var text = delta && delta.content;
   if (typeof text === 'string' && text.length) return { type: 'delta', text: text };
+
+  if (choice.finish_reason) return { type: 'finish', reason: choice.finish_reason };
+
+  if (delta && (typeof delta.reasoning_content === 'string' || typeof delta.reasoning === 'string')) {
+    return { type: 'reasoning' };
+  }
+
   return null;
 }
 
@@ -92,12 +103,20 @@ async function streamChat(messages, onDelta, onStatus, retries) {
   var decoder = new TextDecoder();
   var buffer = '';
   var full = '';
+  var sawReasoning = false;
+  var finishReason = null;
 
   function handleLine(rawLine) {
     var parsed = parseSSELine(rawLine.replace(/\r$/, ''));
-    if (parsed && parsed.type === 'delta') {
+    if (!parsed) return;
+    if (parsed.type === 'delta') {
       full += parsed.text;
       onDelta(parsed.text, full);
+    } else if (parsed.type === 'finish') {
+      finishReason = parsed.reason;
+    } else if (parsed.type === 'reasoning' && !sawReasoning) {
+      sawReasoning = true;
+      if (onStatus) onStatus('Thinking…');
     }
   }
 
@@ -112,6 +131,11 @@ async function streamChat(messages, onDelta, onStatus, retries) {
   buffer += decoder.decode();
   if (buffer) handleLine(buffer);
 
-  if (!full.trim()) throw new Error('Empty response from model. Try again.');
+  if (!full.trim()) {
+    if (finishReason === 'length') {
+      throw new Error('The model used the whole token budget on internal reasoning and returned no answer. Try a shorter request.');
+    }
+    throw new Error('Empty response from model. Try again.');
+  }
   return full;
 }

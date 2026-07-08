@@ -34,9 +34,21 @@ test('ignores comments, blanks, non-data lines, and bad JSON', () => {
   assert.equal(g.parseSSELine('data: {broken'), null);
 });
 
-test('ignores reasoning-only and empty deltas', () => {
+test('classifies reasoning deltas, ignores empty deltas', () => {
   const g = load();
-  assert.equal(g.parseSSELine('data: {"choices":[{"delta":{"reasoning":"hmm"}}]}'), null);
+  assert.deepStrictEqual(g.parseSSELine('data: {"choices":[{"delta":{"reasoning":"hmm"}}]}'), { type: 'reasoning' });
+  assert.deepStrictEqual(g.parseSSELine('data: {"choices":[{"delta":{"reasoning_content":"The user"}}]}'), { type: 'reasoning' });
   assert.equal(g.parseSSELine('data: {"choices":[{"delta":{"content":""}}]}'), null);
   assert.equal(g.parseSSELine('data: {"choices":[{"delta":{}}]}'), null);
+});
+
+test('reports finish_reason chunks', () => {
+  const g = load();
+  assert.deepStrictEqual(g.parseSSELine('data: {"choices":[{"delta":{},"finish_reason":"length"}]}'), { type: 'finish', reason: 'length' });
+  assert.deepStrictEqual(g.parseSSELine('data: {"choices":[{"delta":{},"finish_reason":"stop"}]}'), { type: 'finish', reason: 'stop' });
+});
+
+test('content takes priority over finish_reason in the same chunk', () => {
+  const g = load();
+  assert.deepStrictEqual(g.parseSSELine('data: {"choices":[{"delta":{"content":"hi"},"finish_reason":"stop"}]}'), { type: 'delta', text: 'hi' });
 });

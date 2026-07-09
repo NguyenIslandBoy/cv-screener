@@ -7,6 +7,14 @@ function isLocalMode() {
   return window.location.protocol === 'file:' || host === 'localhost' || host === '127.0.0.1';
 }
 
+// Local-mode auth-gate decision. A configured passphrase must match exactly; an
+// empty/unset passphrase fails closed (no bypass) with a setup hint.
+function localAuthResult(val, expected) {
+  if (!expected) return { ok: false, message: 'No passphrase set. Add APP_PASSPHRASE to js/config.js.' };
+  if (val === expected) return { ok: true, message: '' };
+  return { ok: false, message: 'Incorrect passphrase.' };
+}
+
 function getEndpoint() {
   if (isLocalMode()) {
     var base = (typeof LLM_BASE_URL !== 'undefined' && LLM_BASE_URL)

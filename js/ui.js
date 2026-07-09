@@ -188,8 +188,9 @@ function setupAuth() {
     if (isLocalMode()) {
       // Local dev: compare against the passphrase declared in config.js.
       var expected = typeof APP_PASSPHRASE !== 'undefined' ? APP_PASSPHRASE : '';
-      if (!expected || val === expected) admit(val);
-      else reject('Incorrect passphrase.');
+      var result = localAuthResult(val, expected);
+      if (result.ok) admit(val);
+      else reject(result.message);
       return;
     }
 

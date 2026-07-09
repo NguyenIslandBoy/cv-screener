@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import handler from '../api/chat.js';
+import { loadScript } from './helpers/load-script.mjs';
+
+const localAuth = () =>
+  loadScript('js/api.js', { window: { location: { protocol: 'file:' } } }).localAuthResult;
 
 function makeReq(headers, bodyObj) {
   return new Request('https://example.com/api/chat', {
@@ -38,4 +42,15 @@ test('verify request with no passphrase returns 401', async () => {
 test('non-POST requests are rejected', async () => {
   const res = await handler(new Request('https://example.com/api/chat', { method: 'GET' }));
   assert.equal(res.status, 405);
+});
+
+test('local auth fails closed when no passphrase is configured (no bypass)', () => {
+  const result = localAuth()('anything', '');
+  assert.equal(result.ok, false);
+});
+
+test('local auth admits only on an exact passphrase match', () => {
+  const decide = localAuth();
+  assert.equal(decide('secret', 'secret').ok, true);
+  assert.equal(decide('wrong', 'secret').ok, false);
 });

@@ -1,7 +1,14 @@
-// api.js — streaming chat calls: /api/chat proxy (Vercel) or provider directly (local file://)
+// api.js — streaming chat calls: /api/chat proxy (Vercel) or provider directly (local file:// / localhost)
+
+// Local mode: file:// or a static localhost server (no /api/chat proxy) — talk to
+// the provider directly and gate against config.js. Deployed mode: everything else.
+function isLocalMode() {
+  var host = window.location.hostname;
+  return window.location.protocol === 'file:' || host === 'localhost' || host === '127.0.0.1';
+}
 
 function getEndpoint() {
-  if (window.location.protocol === 'file:') {
+  if (isLocalMode()) {
     var base = (typeof LLM_BASE_URL !== 'undefined' && LLM_BASE_URL)
       ? LLM_BASE_URL
       : 'https://openrouter.ai/api/v1';
@@ -11,7 +18,7 @@ function getEndpoint() {
 }
 
 function getHeaders() {
-  if (window.location.protocol === 'file:') {
+  if (isLocalMode()) {
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + (typeof LLM_API_KEY !== 'undefined' ? LLM_API_KEY : '')
@@ -56,7 +63,7 @@ function parseSSELine(line) {
 async function streamChat(messages, onDelta, onStatus, retries) {
   retries = retries || 0;
 
-  if (window.location.protocol === 'file:') {
+  if (isLocalMode()) {
     var key = typeof LLM_API_KEY !== 'undefined' ? LLM_API_KEY : '';
     if (!key || key === 'PASTE_YOUR_KEY_HERE') {
       throw new Error('No API key found. Open js/config.js and paste your provider key into LLM_API_KEY.');

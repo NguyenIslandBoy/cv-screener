@@ -167,32 +167,52 @@ function setupAuth() {
   // Show gate
   gate.classList.remove('hidden');
 
+  function admit(val) {
+    window.userPassphrase = val;
+    sessionStorage.setItem('cv_screen_auth', '1');
+    sessionStorage.setItem('cv_screen_pass', val);
+    gate.classList.add('hidden');
+    error.textContent = '';
+  }
+
+  function reject(msg) {
+    error.textContent = msg;
+    input.value = '';
+    input.focus();
+  }
+
   function attempt() {
     var val = input.value.trim();
     if (!val) return;
 
-    var isLocal = window.location.protocol === 'file:';
-
-    if (isLocal) {
+    if (isLocalMode()) {
+      // Local dev: compare against the passphrase declared in config.js.
       var expected = typeof APP_PASSPHRASE !== 'undefined' ? APP_PASSPHRASE : '';
-      if (!expected || val === expected) {
-        window.userPassphrase = val;
-        sessionStorage.setItem('cv_screen_auth', '1');
-        sessionStorage.setItem('cv_screen_pass', val);
-        gate.classList.add('hidden');
-        error.textContent = '';
-      } else {
-        error.textContent = 'Incorrect passphrase.';
-        input.value = '';
-        input.focus();
-      }
-    } else {
-      window.userPassphrase = val;
-      sessionStorage.setItem('cv_screen_auth', '1');
-      sessionStorage.setItem('cv_screen_pass', val);
-      gate.classList.add('hidden');
-      error.textContent = '';
+      if (!expected || val === expected) admit(val);
+      else reject('Incorrect passphrase.');
+      return;
     }
+
+    // Deployed: the passphrase lives server-side, so verify against the proxy
+    // before admitting instead of accepting whatever was typed.
+    var original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Checking…';
+    error.textContent = '';
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-app-passphrase': val },
+      body: JSON.stringify({ verify: true })
+    }).then(function (r) {
+      if (r.ok) admit(val);
+      else if (r.status === 401) reject('Incorrect passphrase.');
+      else reject('Auth check failed (' + r.status + '). Try again.');
+    }).catch(function () {
+      reject('Network error — try again.');
+    }).then(function () {
+      btn.disabled = false;
+      btn.textContent = original;
+    });
   }
 
   btn.addEventListener('click', attempt);

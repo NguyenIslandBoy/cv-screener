@@ -13,14 +13,20 @@ export default async function handler(req) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const apiKey = process.env.LLM_API_KEY;
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'API key not configured on server.' }), { status: 500 });
-  }
-
   let body;
   try { body = await req.json(); } catch (_) {
     return new Response(JSON.stringify({ error: 'Invalid request body.' }), { status: 400 });
+  }
+
+  // Passphrase-only check for the auth gate — the passphrase is valid if we
+  // got here, so acknowledge without touching the LLM.
+  if (body.verify) {
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  }
+
+  const apiKey = process.env.LLM_API_KEY;
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'API key not configured on server.' }), { status: 500 });
   }
 
   if (!body.model) {
